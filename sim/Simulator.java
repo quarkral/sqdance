@@ -295,7 +295,7 @@ class Simulator {
 	    // assign stationary players to try to dance with closest
 	    for (int i=0; i<N; i++) {
 		if (M[i] == null) continue;
-		if (distance_gt(new Point(0,0), M[i], 0.000000001)) {
+		if (distance_gt(new Point(0,0), M[i], 0.000001)) {
 		    M[i].id = i; // cannot dance if moving, so assign to own id
 		    continue;
 		}
@@ -314,7 +314,7 @@ class Simulator {
 		    M[i].id = i;
 	    }
 	    
-	    // player stays put
+	    // for null moves, player stays put and dances by himself
 	    for (int i=0; i<N; i++) {
 		if (M[i] == null) {
 		    M[i] = new Point(0.0, 0.0, i);
@@ -355,7 +355,7 @@ class Simulator {
 	    }
 	    Arrays.sort(S);
 	    // player tries to initiate dance (rule 3)
-	    for (Pair s : S) {
+	    /*for (Pair s : S) {
 		int i = s.i;
 		int j = M[i].id;
 		verify(i != j && L[i].id == i);
@@ -365,7 +365,7 @@ class Simulator {
 		    M[j] = new Point(0.0, 0.0, i);
 		    println(out, j + " was forced to start dancing with " + i);
 		}
-	    }
+		}*/
 	    // player failed to initiate dance (rule 3)
 	    for (Pair s : S) {
 		int i = s.i;
@@ -410,31 +410,34 @@ class Simulator {
 		E[i] = 0;
 	    }
 	    for (int i = 0 ; i != N ; ++i) {
-		// not conversing or no enjoyment left
 		int j = L[i].id;
+		boolean c = true;
+		if (i == j) 
+		    c = false;
+		else if (W[j][i] == 0) {
+		    println(out, i + " does not enjoy dancing with " + j + " anymore.");
+		    c = false;
+		}
 		if (Sm[i] == j) met_soulmate[i] = true;
 		// search for closest player
 		double dx = L[i].x - L[j].x;
 		double dy = L[i].y - L[j].y;
 		double d = dx * dx + dy * dy;
-		boolean c = true;
 		for (int k = 0 ; k != N && c ; ++k)
 		    if (i != k && j != k) {
 			dx = L[i].x - L[k].x;
 			dy = L[i].y - L[k].y;
-			if (dx * dx + dy * dy <= personal_bubble) {
+			if (dx * dx + dy * dy <= personal_bubble * personal_bubble) {
 			    println(out, i + " is feeling claustrophobic!");
 			    E[i] += claustrophobic_eps;
 			    score[i] += claustrophobic_eps;
 			    c = false;
 			    break;
 			}
-			if (i == j || dx * dx + dy * dy <= d) {
+			if (i == j || dx * dx + dy * dy <= d) 
 			    c = false;
-			    break;
-			}
 		    }
-		// gain wisdom if closest
+		// gain enjoyment if closest
 		if (i == j) continue;
 		if (W[j][i] == 0) println(out, i + " has no more enjoyment to gain from " + j);
 		else if (!c) println(out, i + " cannot gain enjoyment from " + j);

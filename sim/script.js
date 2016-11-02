@@ -42,6 +42,7 @@ function process(data)
     var rel = new Array(N);
     var score = new Array(N);
     var a = 5;
+    var min_score = 10800;
     for (var i = 0 ; i != N ; ++i) {
 	group[i] = data[a++].trim();
 	x_curr[i] = (parse_float(data[a++]) / side) * size + x_base;
@@ -53,6 +54,7 @@ function process(data)
 	wisdom[i] = parse_integer(data[a++]);
 	rel[i] = parse_integer(data[a++]);
 	score[i]  = parse_integer(data[a++]);
+	min_score = Math.min(score[i], min_score);
     }
     // clear the canvas
     var ctx = canvas.getContext("2d");
@@ -71,7 +73,8 @@ function process(data)
     ctx.font = "22px Arial";
     ctx.textAlign = "center";
     ctx.fillStyle = "black";
-    ctx.fillText(clock, x_base + size * 0.5, y_base * 0.7);
+    ctx.fillText("Time: " + clock, x_base + size * 0.35, y_base * 0.7);
+    ctx.fillText("Minimum score: " + min_score, x_base + size * 0.65, y_base * 0.7);
     // draw the players in the room
     ctx.font = "9px Arial";
     ctx.lineWidth = 0.5;

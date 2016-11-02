@@ -82,9 +82,11 @@ public class Player implements sqdance.sim.Player {
 		}
 	    }
 	    Point m = null;	    
-	    if (++idle_turns[i] > 15) { // if stuck at current position without enjoying anything
+	    if (++idle_turns[i] > 31) { // if stuck at current position without enjoying anything
 		idle_turns[i] = 0;
 	    } else { // stay put if there's another potential dance partner in range
+		double closest_dist = Double.MAX_VALUE;
+		int closest_index = -1;
 		for (int t=0; t<d; t++) {
 		    // skip if no more to enjoy
 		    if (E[i][t] == 0) continue;
@@ -94,7 +96,7 @@ public class Player implements sqdance.sim.Player {
 		    double dy = self.y - p.y;
 		    double dd = dx * dx + dy * dy;
 		    // stay put and try to dance if new person around or more enjoyment remaining.		
-		    if (dd >= 0.25 && dd <= 4.0) {
+		    if (dd >= 0.25 && dd < 4.0) {
 			m = new Point(0.0, 0.0);
 			break;
 		    }
