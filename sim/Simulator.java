@@ -23,8 +23,8 @@ class Simulator {
     private static final double epsilon = 0.00000000000000000000000000000001;
     
     // time limits
-    private static final int init_timeout = 10000;
-    private static final int play_timeout = 1000;
+    private static final int init_timeout = 60000;
+    private static final int play_timeout = 2000;
 
     public static void main(String[] args)
     {
@@ -85,7 +85,7 @@ class Simulator {
 	
 	int strangers = participants - friends - 2;
 	// print info
-	System.out.println("Total participants: " + participants);
+	/*System.out.println("Total participants: " + participants);
 	System.out.println("Friends: " + friends);
 	System.out.println("Strangers: " + strangers);
 	if (!gui)
@@ -97,12 +97,7 @@ class Simulator {
 	else {
 	    double fps = 1000.0 / gui_refresh;
 	    System.out.println("GUI: enabled  (up to " + fps + " FPS)");
-	}
-	if (out == null) out = System.err;
-	else {
-	    System.out.close();
-	    System.err.close();
-	}
+	    }*/
 	// start game
 	int[] score = new int [participants];
 	boolean[] met_soulmate = new boolean [participants];
@@ -118,15 +113,11 @@ class Simulator {
 	}
 	int min_score = Integer.MAX_VALUE;
 	for (int i = 0 ; i != score.length ; ++i) {
-	    out.println("Player " + i + " (" + group +
-			") scored: " + score[i] +
-			(score[i] == max_score ? " (maximum score) " : " ") +
-			(met_soulmate[i] ? "[soulmate dance]" : ""));
 	    if (score[i] < min_score)
-		min_score = score[i];
+	    min_score = score[i];
 	}
-	out.println("Minimum score: " + min_score);
-	if (out != System.err) out.close();	
+	System.err.println(participants + "," + friends + "," + group + "," + Integer.toString(min_score));
+	
 	System.exit(0);
     }
 
@@ -788,11 +779,9 @@ class Simulator {
 	    StandardJavaFileManager manager = compiler.
 		getStandardFileManager(null, null, null);
 	    long files = player_files.size();
-	    System.err.print("Compiling " + files + " .java files ... ");
 	    if (!compiler.getTask(null, manager, null, null, null,
 				  manager.getJavaFileObjectsFromFiles(player_files)).call())
 		throw new IOException("Compilation failed");
-	    System.err.println("done!");
 	    class_file = new File(root + sep + group + sep + "Player.class");
 	    if (!class_file.exists())
 		throw new FileNotFoundException("Missing class file");
