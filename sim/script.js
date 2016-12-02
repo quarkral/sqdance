@@ -73,8 +73,9 @@ function process(data)
     ctx.font = "22px Arial";
     ctx.textAlign = "center";
     ctx.fillStyle = "black";
-    ctx.fillText("Time: " + clock, x_base + size * 0.35, y_base * 0.7);
-    ctx.fillText("Minimum score: " + min_score, x_base + size * 0.65, y_base * 0.7);
+    ctx.fillText("Time: " + clock, x_base + size * 0.25, y_base * 0.7);
+    ctx.fillText("Minimum score: " + min_score, x_base + size * 0.50, y_base * 0.7);
+    ctx.fillText("Group: " + group[0], x_base + size * 0.75, y_base * 0.7);
     // draw the players in the room
     ctx.font = "9px Arial";
     ctx.lineWidth = 0.5;
@@ -90,6 +91,7 @@ function process(data)
 	ctx.moveTo(x_prev[i], y_prev[i]);
 	ctx.lineTo(x_curr[i], y_curr[i]);
 	ctx.strokeStyle = "red";
+	ctx.lineWidth = 2;
 	ctx.stroke();
 	// current position
 	ctx.beginPath();
@@ -109,16 +111,17 @@ function process(data)
 	    ctx.stroke();
 	}
     }
-    // draw the chat connections
+    // draw the partner connections
     for (var i = 0 ; i != N ; ++i) {
 	var j = chat[i];
 	if (i != j) {
 	    if (rel[i] == 0)
-		ctx.strokeStyle = "blue";
+		ctx.strokeStyle = "blue"; // stranger dance
 	    else if (rel[i] == 1)
-		ctx.strokeStyle = "green";
+		ctx.strokeStyle = "green"; // friend dance
 	    else if (rel[i] == 2)
-		ctx.strokeStyle = "magenta";
+		ctx.strokeStyle = "magenta"; // soulmate dance
+	    ctx.lineWidth = 5;
 	    ctx.beginPath();
 	    ctx.moveTo(x_curr[i], y_curr[i]);
 	    ctx.lineTo(x_curr[j], y_curr[j]);

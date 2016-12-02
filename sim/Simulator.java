@@ -17,9 +17,10 @@ class Simulator {
     private static final int friend_eps = 4;
     private static final int friend_emax = 200;
     private static final int stranger_eps = 3;
-    private static final int stranger_emax = 90;
+    private static final int stranger_emax = 60;
     private static final int claustrophobic_eps = -5;
     private static final double personal_bubble = 0.1;
+    private static final double epsilon = 0.00000000000000000000000000000001;
     
     // time limits
     private static final int init_timeout = 10000;
@@ -190,6 +191,7 @@ class Simulator {
 		    return p;
 		}});
 	final Player player = thread.call_wait(init_timeout);
+	Point[] sL = null;
 	Point[] L = null;
 	Point[] Lp = new Point[N]; // previous location of player, for drawing movement lines
 	thread.call_start(new Callable <Point[]> () {
@@ -197,7 +199,7 @@ class Simulator {
 		    return player.generate_starting_locations();
 		}});
 	try {
-	    L = thread.call_wait(init_timeout);
+	    sL = thread.call_wait(init_timeout);
 	}
 	catch (Exception e) {
 	    if (e instanceof TimeoutException) {
@@ -209,10 +211,13 @@ class Simulator {
 		System.exit(1);
 	    }
 	}		    
-	if (L.length != N)
+	if (sL.length != N)
 	    throw new RuntimeException("Player submitted invalid list of initial locations.");
+	L = new Point[N];
 	for (int i=0; i<N; i++) {
-	    L[i] = new Point(L[i].x, L[i].y, i);
+	    if (sL[i].x < 0 || sL[i].x > room_side || sL[i].y < 0 || sL[i].y > room_side) 
+		throw new IllegalArgumentException("Player submitted invalid initial location.");
+	    L[i] = new Point(sL[i].x, sL[i].y, i);
 	    Lp[i] = L[i];
 	}
 	// play the game
@@ -252,9 +257,10 @@ class Simulator {
 	    if (out != null) println(out, clock);
 	    // call play function of players
 	    final Point[] curr_L = L;
+	    final int[] curr_score = score;
 	    thread.call_start(new Callable <Point[]>() {
 		    public Point[] call() throws Exception {
-			return player.play(curr_L,P,E);
+			return player.play(curr_L,curr_score,P,E);
 		    }});	    
 	    try {
 		M = thread.call_wait(play_timeout);
@@ -275,21 +281,21 @@ class Simulator {
 		M[i] = null;
 		C[i] = false;
 		if (m == null)
-		    println(out, i + ": Unspecified action");
+		    throw new IllegalArgumentException(i + ": Unspecified action");
 		else if (Double.isNaN(m.x) || Double.isInfinite(m.x))
-		    println(out, i + ": Undefined movement x");
+		    throw new IllegalArgumentException(i + ": Undefined movement x");
 		else if (Double.isNaN(m.y) || Double.isInfinite(m.y))
-		    println(out, i + ": Undefined movement y");
-		else if (L[i].x + m.x < 0)
-		    println(out, i + ": Invalid movement: x < 0");
-		else if (L[i].y + m.y < 0)
-		    println(out, i + ": Invalid movement: y < 0");
-		else if (L[i].x + m.x > room_side)
-		    println(out, i + ": Invalid movement: x > " + room_side);
-		else if (L[i].y + m.y > room_side)
-		    println(out, i + ": Invalid movement: y > " + room_side);
-		else if (distance_gt(m, p_0, 2.0))
-		    println(out, i + ": Invalid movement vector of " + m.x + "," + m.y);
+		    throw new IllegalArgumentException(i + ": Undefined movement y");
+		else if (L[i].x + m.x < 0 - epsilon)
+		    throw new IllegalArgumentException(i + ": Invalid movement: x < 0");
+		else if (L[i].y + m.y < 0 - epsilon)
+		    throw new IllegalArgumentException(i + ": Invalid movement: y < 0");
+		else if (L[i].x + m.x > room_side + epsilon)
+		    throw new IllegalArgumentException(i + ": Invalid movement: x > " + room_side);
+		else if (L[i].y + m.y > room_side + epsilon)
+		    throw new IllegalArgumentException(i + ": Invalid movement: y > " + room_side);
+		else if (distance_gt(m, p_0, 2.0 + epsilon))
+		    throw new IllegalArgumentException(i + ": Invalid movement vector of " + m.x + "," + m.y);
 		else M[i] = m;
 	    }
 	    // assign stationary players to try to dance with closest
@@ -320,89 +326,23 @@ class Simulator {
 		    M[i] = new Point(0.0, 0.0, i);
 		}
 	    }
-	    // both players want to continue dancing (rule 1)
+	    // both players want to dance
 	    for (int i = 0 ; i != N ; ++i) {
 		int j = M[i].id;
-		if (i < j && M[j].id == i && L[i].id == j) {
-		    verify(!C[i] && !C[j] && L[j].id == i);
-		    C[i] = C[j] = true;
-		    println(out, i + " and " + j + " want to continue dancing");
+		if (i < j && M[j].id == i && M[i].id == j) {
+		    println(out, i + " and " + j + " want to dance");
 		}
 	    }
-	    // both players want to start dancing (rule 2)
-	    for (int i = 0 ; i != N ; ++i) {
-		int j = M[i].id;
-		if (i < j && M[j].id == i && L[i].id == i) {
-		    verify(!C[i] && !C[j] && L[j].id == j);
-		    C[i] = C[j] = true;
-		    println(out, i + " and " + j + " want to start dancing");
-		}
-	    }
-	    // gather players that try to initiate dancing (rule 3)
-	    List <Pair> Sl = new ArrayList <Pair> ();
-	    for (int i = 0 ; i != N ; ++i) {
-		int j = M[i].id;
-		if (i != j && M[j].id != i && L[i].id == i) {
-		    verify(!C[i]);
-		    Sl.add(new Pair(i, distance(L[i], L[j])));
-		}
-	    }
-	    // shuffle before sorting for random handling of equals
-	    Pair[] S = Sl.toArray(new Pair [0]);
-	    for (int i = 0 ; i != S.length ; ++i) {
-		int j = random.nextInt(S.length - i) + i;
-		Pair p = S[i];  S[i] = S[j];  S[j] = p;
-	    }
-	    Arrays.sort(S);
-	    // player tries to initiate dance (rule 3)
-	    /*for (Pair s : S) {
-		int i = s.i;
-		int j = M[i].id;
-		verify(i != j && L[i].id == i);
-		// your target is idle and he has to be polite
-		if (!C[i] && !C[j] && L[j].id == j) {
-		    C[i] = C[j] = true;
-		    M[j] = new Point(0.0, 0.0, i);
-		    println(out, j + " was forced to start dancing with " + i);
-		}
-		}*/
-	    // player failed to initiate dance (rule 3)
-	    for (Pair s : S) {
-		int i = s.i;
-		int j = M[i].id;
-		// player has to stay put
-		if (!C[i]) M[i] = new Point(0.0, 0.0, i);
-		println(out, i + " failed to start dance with " + j);
-	    }
-	    // target doesn't want to continue dance (rule 4)
-	    for (int i = 0 ; i != N ; ++i) {
-		int j = M[i].id;
-		if (i != j && L[i].id == j && M[j].id != i) {
-		    verify(!C[i] && L[j].id == i && M[j].id == j);
-		    M[i] = new Point(0.0, 0.0, i);
-		    println(out, j + " wants to stop dancing with " + i);
-		}
-	    }
-	    // player wants to move or has to stay put (rule 5)
+	    // player wants to move or has to stay put
 	    for (int i = 0 ; i != N ; ++i)
 		if (M[i].id == i) {
-		    verify(!C[i]);
-		    C[i] = true;
 		    println(out, i + " moved from (" + L[i].x + ", " + L[i].y + ")"
 			    + " to (" + (L[i].x + M[i].x) + ", " + (L[i].y + M[i].y) + ")");
 		}
 	    // move all players that must now be processed
 	    for (int i = 0 ; i != N ; ++i) {
-		verify(C[i]);
-		C[i] = false;
 		Lp[i] = L[i];
 		L[i] = new Point(L[i].x + M[i].x, L[i].y + M[i].y, M[i].id);
-	    }
-	    // validate pair-wise conversations
-	    for (int i = 0 ; i != N ; ++i) {
-		int j = L[i].id;
-		if (i == j) continue;
-		verify(L[j].id == i);
 	    }
 	    // update enjoyment points
 	    for (int i=0; i<N; i++) {
@@ -410,46 +350,81 @@ class Simulator {
 		E[i] = 0;
 	    }
 	    for (int i = 0 ; i != N ; ++i) {
-		int j = L[i].id;
-		boolean c = true;
-		if (i == j) 
-		    c = false;
-		else if (W[j][i] == 0) {
-		    println(out, i + " does not enjoy dancing with " + j + " anymore.");
-		    c = false;
+		int j = M[i].id;
+		boolean c = true; // whether player i is dancing with j
+		if (i > j && M[j].id == i) // avoid double processing dance pairs, only do when i < j
+		    continue;
+		if (Sm[i] == j) {
+		    met_soulmate[i] = true;
+		    met_soulmate[j] = true;
 		}
-		if (Sm[i] == j) met_soulmate[i] = true;
-		// search for closest player
+		// search for closest player to i
 		double dx = L[i].x - L[j].x;
 		double dy = L[i].y - L[j].y;
 		double d = dx * dx + dy * dy;
-		for (int k = 0 ; k != N && c ; ++k)
+		for (int k = 0 ; k < N && c ; ++k) {
 		    if (i != k && j != k) {
 			dx = L[i].x - L[k].x;
 			dy = L[i].y - L[k].y;
-			if (dx * dx + dy * dy <= personal_bubble * personal_bubble) {
+			if (dx * dx + dy * dy <= personal_bubble * personal_bubble) { 
 			    println(out, i + " is feeling claustrophobic!");
 			    E[i] += claustrophobic_eps;
 			    score[i] += claustrophobic_eps;
 			    c = false;
-			    break;
+			    break; // lose claustrophobia points only once
 			}
-			if (i == j || dx * dx + dy * dy <= d) 
+			if (dx * dx + dy * dy <= d) 
 			    c = false;
 		    }
-		// gain enjoyment if closest
-		if (i == j) continue;
-		if (W[j][i] == 0) println(out, i + " has no more enjoyment to gain from " + j);
-		else if (!c) println(out, i + " cannot gain enjoyment from " + j);
+		}
+		if (i == j)
+		    continue;
+		if (M[j].id != i) {
+		    L[i].id = i;
+		    continue;
+		}
+		// search for closest player to j if (i,j) is a pair
+		for (int k = 0 ; k < N && c ; ++k) {
+		    if (i != k && j != k) {
+			dx = L[j].x - L[k].x;
+			dy = L[j].y - L[k].y;
+			if (dx * dx + dy * dy <= personal_bubble) { 
+			    println(out, j + " is feeling claustrophobic!");
+			    E[j] += claustrophobic_eps;
+			    score[j] += claustrophobic_eps;
+			    c = false;
+			    break; // lose claustrophobia points only once
+			}
+			if (dx * dx + dy * dy <= d) 
+			    c = false;
+		    }
+		}
+		// if c is still true, both players dance with each other
+		if (W[j][i] == 0 && c) { // still dance with each other but not enjoying it
+		    L[i].id = j;
+		    L[j].id = i;
+		    println(out, i + " and " + j + " do not enjoy dancing with each other anymore.");
+		}
+		else if (!c) { // cannot dance because of physical obstructions
+		    L[i].id = i;
+		    L[j].id = j;
+		    println(out, i + " and " + j + " cannot dance with each other right now.");
+		}
 		else {
 		    int w = EPS[i][j];
-		    E[i] = EPS[i][j];
+		    E[i] = w;
+		    E[j] = w;
 		    P[i] = j;
+		    P[j] = i;
 		    W[j][i] -= w;
+		    W[i][j] -= w;
+		    score[j] += w;
 		    score[i] += w;
+		    C[j] = true;
 		    C[i] = true;
+		    L[j].id = i;
 		    L[i].id = j;
-		    println(out, i + " gained enjoyment from " + j);
+		    println(out, i + " and " + j + " gained enjoyment.");
 		}
 	    }
 	}
@@ -494,7 +469,7 @@ class Simulator {
 	    return d < p.d ? -1 : (d > p.d ? 1 : 0);
 	}
     }
-
+    
     private static int[][] generate_enjoyment_array (int friends, int strangers)
     {
 	if (friends < 0 || strangers < 0)

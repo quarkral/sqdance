@@ -1,0 +1,12 @@
+having special exceptions for friends/soulmates can mess with overall pattern if the number of friends becomes large
+
+maybe not worth it for large numbers of dancers because score is entirely determined by those who did not find their friends/soulmate
+
+-d 2800 -f 280
+
+g1: conveyers of non-dancers for every third row of dancers. 10 intervals of dancing before switching.
+
+g2: large scale coordinated movement to swap dancers on stage with dancers waiting in a crowd
+
+David: more computationally demanding to coordinate a large movement without claustrophobia
+

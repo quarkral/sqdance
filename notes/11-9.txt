@@ -1,0 +1,21 @@
+g6:
+after n rounds, every pair of dancers will dance with each other. find soulmates after n rounds. no particular geometric structure to positioning of dancers
+
+g8: same but uses a moebius strip embedded as two concentric circles to rotate dancers
+
+g4, g2: wait full 2 minutes before swapping dancers
+
+g9: uses local heuristics to move individual dancers
+
+g5: two parallel lines
+
+g3: starts with "snake" and then switches to default player
+
+-d 1000
+
+g6: lost a lot of points because of collisions while looking for soulmates
+
+next deliverable:
+fix initialization issues
+take into account number of friends
+take into high density situations

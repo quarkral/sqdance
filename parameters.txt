@@ -1,0 +1,5 @@
+30,000 upper limit for d
+
+0,25,50,75% friends up to 5000
+
+25,50% friends above 5000

@@ -16,14 +16,14 @@ public class Player implements sqdance.sim.Player {
 
     // simulation parameters
     private int d = -1;
-    private int room_side = -1;
+    private double room_side = -1;
 
     private int[] idle_turns;
     
     // init function called once with simulation parameters before anything else is called
     public void init(int d, int room_side) {
 	this.d = d;
-	this.room_side = room_side;
+	this.room_side = (double) room_side;
 	random = new Random();
 	E = new int [d][d];
 	idle_turns = new int[d];
@@ -42,8 +42,8 @@ public class Player implements sqdance.sim.Player {
 	Point[] L  = new Point [d];
 	for (int i = 0 ; i < d ; ++i) {
 	    int b = 1000 * 1000 * 1000;
-	    double x = random.nextInt(b + 1) * 20.0 / b;
-	    double y = random.nextInt(b + 1) * 20.0 / b;
+	    double x = random.nextInt(b + 1) * room_side / b;
+	    double y = random.nextInt(b + 1) * room_side / b;
 	    L[i] = new Point(x, y);
 	}	
 	return L;
@@ -51,21 +51,15 @@ public class Player implements sqdance.sim.Player {
 
     // play function
     // dancers: array of locations of the dancers
+    // scores: cumulative score of the dancers
     // partner_ids: index of the current dance partner. -1 if no dance partner
     // enjoyment_gained: integer amount (-5,0,3,4, or 6) of enjoyment gained in the most recent 6-second interval
-    public Point[] play(Point[] dancers, int[] partner_ids, int[] enjoyment_gained) {
+    public Point[] play(Point[] dancers, int[] scores, int[] partner_ids, int[] enjoyment_gained) {
 	Point[] instructions = new Point[d];
-	/*	for (int i=0; i<d; i++) {
-	    String row = "";
-	    for (int j=0; j<d; j++) {
-		row = row + Integer.toString(E[i][j]) + " ";
-	    }
-	    System.out.println(row);
-	    }*/
 	for (int i=0; i<d; i++) {
 	    int j = partner_ids[i];
 	    Point self = dancers[i];
-	    if (j >= 0 && enjoyment_gained[i] > 0) { // previously had a dance partner
+	    if (enjoyment_gained[i] > 0) { // previously had a dance partner
 		idle_turns[i] = 0;
 		Point dance_partner = dancers[j];
 		// update remaining available enjoyment
@@ -82,7 +76,7 @@ public class Player implements sqdance.sim.Player {
 		}
 	    }
 	    Point m = null;	    
-	    if (++idle_turns[i] > 31) { // if stuck at current position without enjoying anything
+	    if (++idle_turns[i] > 21) { // if stuck at current position without enjoying anything
 		idle_turns[i] = 0;
 	    } else { // stay put if there's another potential dance partner in range
 		double closest_dist = Double.MAX_VALUE;
@@ -118,7 +112,7 @@ public class Player implements sqdance.sim.Player {
     
     private int total_enjoyment(int enjoyment_gained) {
 	switch (enjoyment_gained) {
-	case 3: return 90; // stranger
+	case 3: return 60; // stranger
 	case 4: return 200; // friend
 	case 6: return 10800; // soulmate
 	default: throw new IllegalArgumentException("Not dancing with anyone...");

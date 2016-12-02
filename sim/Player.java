@@ -10,6 +10,7 @@ public interface Player {
     // (return)    -> return your next action
     //    x, y -> dx, dy of movement (set to 0 to not move)
     public Point[] play(Point[] dancers,
+			int[] scores,
 			int[] partner_ids,
 			int[] enjoyment_gained);
 }

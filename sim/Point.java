@@ -17,7 +17,7 @@ public class Point {
 	return new Point(this.x + other.x, this.y + other.y);
     }
 
-    public boolean valid_movement(Point v, int room_side) {
+    public boolean valid_movement(Point v, double room_side) {
 	Point dest = add(v);
 	return (dest.x >= 0 && dest.y >= 0 && dest.x < room_side && dest.y < room_side);
     }

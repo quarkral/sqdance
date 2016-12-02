@@ -1,0 +1,12 @@
+Bruce: snake pattern where players alternate dancing with left and right person is more efficient for soulmate searching
+
+Michael: 
+4 minutes of dancing with friends is better than 5 minutes, to avoid the 1 minute deadtime
+
+Kailash: spend some turns estimating the percentage of friends. if percentage is greater than 75%, let friends dance for the full 5 minutes. otherwise 5 minutes
+
+Chengyu: dancers who find their soulmates should move out efficiently, otherwise they interfere with the other dancers 
+
+Chengyu: 10,000 case have dancers move on and off the score by lowest score instead of by predetermined geometry
+
+Julian: keep track of lowest scoring dancer in all strategies and optimize for that dancer

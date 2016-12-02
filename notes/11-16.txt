@@ -1,0 +1,21 @@
+-d 1500
+
+g7:  two parallel lines of dancers swapping every 3 6s-intervals in a snake pattern. Stay dancing with friends instead of continuing.
+
+g4: honeymoon region for each column of dancers on the top of each column
+
+g6: spiral with each iteration lasting 2 minutes. Switches from soulmate search strategy to 2-minute strategy if d>800
+
+-d 2000
+
+g6: column of non-dancers on the right hand side
+
+Avidan: spread non-dancers throughout instead of having them all in one clump so that they rotate in and out faster
+
+Michael: keep one loop of rotation but have multiple segments of non-dancers
+
+-d 10000
+
+approximately 1200 players should have room to dance, so each player should be able to dance 1/10 of the entire 3-hour session
+
+deliverable: be robust enough to deal with claustrophobic dance floors
