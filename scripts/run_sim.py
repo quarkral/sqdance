@@ -1,4 +1,4 @@
-import sys,os,math
+import sys,os,math,subprocess
 
 repeats = 10
 Participants = [100, 200, 400, 800, 1600, 3200, 6400]
@@ -11,9 +11,9 @@ if (len(sys.argv) > 1):
 for d in Participants:
     for fr in Friends:
         f = int(math.floor(fr * d))
-        scores = []
         for player in Players:
             for i in range(repeats):
                 command = "java sqdance.sim.Simulator -g " + player + " -f " + str(f) + " -d " + str(d) + " 2>> " + "results.csv"
                 print command
                 os.system(command)
+                
